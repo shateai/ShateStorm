@@ -33,7 +33,7 @@ const MAX_DAILY_IMAGES = 50;
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
-    step: 'explore',
+    step: 'dashboard',
     topic: '',
     voice: 'Kore',
     slideCount: 5,
