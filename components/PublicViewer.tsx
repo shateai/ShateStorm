@@ -85,24 +85,30 @@ export const PublicViewer: React.FC<PublicViewerProps> = ({ presentation, onBack
             className="w-full max-w-6xl aspect-video bg-black/40 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden flex flex-col md:flex-row relative"
           >
             {/* Visual Side */}
-            <div className={`relative ${currentSlide.layout === 'full-image' ? 'w-full h-full' : 'w-full md:w-3/5 h-1/2 md:h-full'} bg-slate-900`}>
-              {currentSlide.imageUrl ? (
+            <div className={`relative ${currentSlide.layout === 'full-image' ? 'w-full h-full' : 'w-full md:w-3/5 h-1/2 md:h-full'} bg-slate-900 group/visual`}>
+              {(currentSlide.imageUrl || currentSlide.imageBase64) ? (
                 <img 
-                  src={currentSlide.imageUrl || currentSlide.imageBase64} 
-                  className="w-full h-full object-cover" 
+                  src={currentSlide.imageUrl || (currentSlide.imageBase64 ? `data:image/png;base64,${currentSlide.imageBase64}` : '')} 
+                  className="w-full h-full object-cover grayscale-[30%] group-hover/visual:grayscale-0 transition-all duration-1000" 
                   alt={currentSlide.title} 
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-slate-900">
                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                   <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Načítám hologram...</span>
+                   <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 uppercase">Načítám hologram...</span>
                 </div>
               )}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-60"></div>
+              
               {currentSlide.layout === 'full-image' && (
-                <div className="absolute inset-x-0 bottom-0 p-12 bg-gradient-to-t from-black via-black/40 to-transparent">
-                  <h2 className="text-4xl md:text-5xl font-black text-white leading-none tracking-tighter max-w-3xl">
+                <div className="absolute inset-x-0 bottom-0 p-16 bg-gradient-to-t from-[#020617] via-[#020617]/40 to-transparent">
+                  <motion.h2 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-5xl md:text-7xl font-black text-white leading-[0.9] tracking-tighter max-w-3xl"
+                  >
                     {currentSlide.title}
-                  </h2>
+                  </motion.h2>
                 </div>
               )}
             </div>

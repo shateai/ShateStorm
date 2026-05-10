@@ -523,17 +523,23 @@ export const PresentationViewer: React.FC<PresentationViewerProps> = ({
                       <div className="grid grid-cols-2 gap-3">
                           <button onClick={() => handleRegenerateImage(currentIndex)} disabled={isUpdating} className="flex flex-col items-center justify-center gap-2 p-4 bg-slate-950 border border-slate-800 rounded-2xl hover:border-blue-500/50 hover:bg-slate-900 transition-all">
                               <RefreshCw className={`w-5 h-5 text-indigo-400 ${isUpdating ? 'animate-spin' : ''}`}/>
-                              <span className="text-[9px] font-bold text-slate-400">Regenerovat Obrázek</span>
+                              <span className="text-[9px] font-bold text-slate-400">Regenerovat</span>
                           </button>
-                          <button 
-                             onClick={() => onRegenerateAudio && onRegenerateAudio(currentIndex)} 
-                             disabled={isUpdating}
-                             className="flex flex-col items-center justify-center gap-2 p-4 bg-slate-950 border border-slate-800 rounded-2xl hover:border-blue-500/50 hover:bg-slate-900 transition-all"
-                          >
-                              <Volume2 className="w-5 h-5 text-sky-400"/>
-                              <span className="text-[9px] font-bold text-slate-400">Regenerovat Zvuk</span>
-                          </button>
+                          
+                          <label className="flex flex-col items-center justify-center gap-2 p-4 bg-slate-950 border border-slate-800 rounded-2xl hover:border-blue-500/50 hover:bg-slate-900 transition-all cursor-pointer">
+                              <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
+                              <Upload className="w-5 h-5 text-emerald-400"/>
+                              <span className="text-[9px] font-bold text-slate-400">Vlastní fotka</span>
+                          </label>
                       </div>
+                      <button 
+                         onClick={() => onRegenerateAudio && onRegenerateAudio(currentIndex)} 
+                         disabled={isUpdating}
+                         className="w-full py-4 bg-slate-950 border border-slate-800 rounded-2xl hover:border-blue-500/50 hover:bg-slate-900 transition-all flex items-center justify-center gap-3"
+                      >
+                          <Volume2 className="w-4 h-4 text-sky-400"/>
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Regenerovat Zvuk</span>
+                      </button>
                   </div>
 
                   {currentSlide.imageValidation && (
