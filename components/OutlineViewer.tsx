@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { motion } from 'motion/react';
-import { Check, Edit3, Trash2, Plus, Sparkles, ArrowRight, Minus, RefreshCw, Loader2 } from 'lucide-react';
+import { motion, Reorder } from 'motion/react';
+import { Trash2, GripVertical, Plus, Sparkles, Wand2, X, ArrowRight, Loader2, RotateCcw } from 'lucide-react';
 import { DraftSlide } from '../types';
 
 interface OutlineViewerProps {
   topic: string;
   outline: DraftSlide[];
-  onUpdate: (outline: DraftSlide[]) => void;
+  onUpdate: (o: DraftSlide[]) => void;
   onGenerate: () => void;
   onCancel: () => void;
   slideCount: number;
@@ -16,148 +16,182 @@ interface OutlineViewerProps {
   isRegenerating: boolean;
 }
 
-export const OutlineViewer: React.FC<OutlineViewerProps> = ({ 
-  topic, outline, onUpdate, onGenerate, onCancel, slideCount, setSlideCount, onRegenerate, isRegenerating 
+export const OutlineViewer: React.FC<OutlineViewerProps> = ({
+  topic, outline, onUpdate, onGenerate, onCancel, slideCount, setSlideCount, onRegenerate, isRegenerating
 }) => {
-  
-  const handleEditTitle = (index: number, title: string) => {
+  const addSlide = () => {
+    const newSlide: DraftSlide = {
+      title: "Nový Slajd",
+      description: "Popis cíle slajdu",
+      suggestedBullets: ["Nová odrážka 1", "Nová odrážka 2"]
+    };
+    onUpdate([...outline, newSlide]);
+    setSlideCount(outline.length + 1);
+  };
+
+  const removeSlide = (index: number) => {
     const newOutline = [...outline];
-    newOutline[index].title = title;
+    newOutline.splice(index, 1);
     onUpdate(newOutline);
+    setSlideCount(newOutline.length);
   };
 
-  const handleEditBullet = (slideIndex: number, bulletIndex: number, text: string) => {
+  const updateSlide = (index: number, field: keyof DraftSlide, value: any) => {
     const newOutline = [...outline];
-    newOutline[slideIndex].suggestedBullets[bulletIndex] = text;
+    newOutline[index] = { ...newOutline[index], [field]: value };
     onUpdate(newOutline);
-  };
-
-  const handleAddBullet = (index: number) => {
-    const newOutline = [...outline];
-    newOutline[index].suggestedBullets.push("Nový bod...");
-    onUpdate(newOutline);
-  };
-
-  const handleRemoveSlide = (index: number) => {
-    const newOutline = outline.filter((_, i) => i !== index);
-    onUpdate(newOutline);
-  };
-
-  const handleAddSlide = () => {
-    onUpdate([...outline, { title: "Nový Slide", description: "Popis nového slidu", suggestedBullets: ["Bod 1"] }]);
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-4">
-          <Sparkles className="w-3 h-3" /> AI Průzkum Dokončen
-        </div>
-        <h2 className="text-3xl font-black text-white mb-3 tracking-tight">Navrhovaná osnova</h2>
-        <p className="text-slate-400 max-w-xl mx-auto mb-6 text-sm">Prověř téma "<span className="text-white font-bold">{topic}</span>" a uprav rozsah nebo jednotlivé body.</p>
-        
-        <div className="inline-flex flex-wrap items-center justify-center gap-4 bg-slate-950/40 backdrop-blur-3xl shadow-2xl border border-white/5 rounded-2xl p-4 px-8 mb-4">
-            <div className="flex flex-col items-start gap-1">
-                <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Počet slajdů</span>
-                <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => setSlideCount(Math.max(3, slideCount - 1))}
-                        className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
-                    >
-                        <Minus className="w-4 h-4" />
-                    </button>
-                    <span className="text-2xl font-black text-white w-12 text-center">{slideCount}</span>
-                    <button 
-                        onClick={() => setSlideCount(Math.min(20, slideCount + 1))}
-                        className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
-                    >
-                        <Plus className="w-4 h-4" />
-                    </button>
-                </div>
+    <div className="container mx-auto px-6 pt-32 pb-20 max-w-5xl">
+       <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8 border-b border-white/5 pb-12">
+          <div>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="h-0.5 w-12 bg-purple-500"></div>
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-purple-400">Strategické Plánování</span>
             </div>
-            <div className="w-px h-12 bg-white/5"></div>
-            <button 
-                onClick={onRegenerate}
+            <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter">Architektura <span className="text-slate-500">Obsahu</span></h1>
+          </div>
+          
+          <div className="flex items-center gap-4">
+              <button 
+                onClick={onCancel}
+                className="px-8 py-4 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:text-white transition-colors"
                 disabled={isRegenerating}
-                className="flex items-center gap-3 bg-blue-600/10 text-blue-400 border border-blue-500/20 px-6 py-3 rounded-2xl font-bold text-sm hover:bg-blue-600/20 transition-all disabled:opacity-50"
-            >
-                {isRegenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                Přegenerovat
-            </button>
-        </div>
-      </div>
+              >
+                Storno
+              </button>
+              <button 
+                onClick={onRegenerate}
+                className="flex items-center gap-3 px-6 py-4 bg-white/[0.03] border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:border-white/10 transition-all"
+                disabled={isRegenerating}
+              >
+                {isRegenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                Přebudovat Osnovu
+              </button>
+          </div>
+       </div>
 
-      <div className="space-y-4 mb-10">
-        {outline.map((slide, idx) => (
-          <motion.div 
-            key={idx}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05 }}
-            className="group relative flex gap-4 bg-slate-900/60 border border-white/5 rounded-2xl p-6 hover:border-blue-500/20 transition-all"
-          >
-            <div className="flex-shrink-0 w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400 font-bold text-xs border border-blue-500/10 shadow-lg">
-                {idx + 1}
-            </div>
-            
-            <div className="flex-grow space-y-3">
-                <input 
-                  value={slide.title}
-                  onChange={(e) => handleEditTitle(idx, e.target.value)}
-                  className="w-full bg-transparent text-white font-bold text-lg focus:outline-none focus:text-blue-400 transition-colors"
-                />
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                    {slide.suggestedBullets.map((bullet, bIdx) => (
-                        <div key={bIdx} className="flex items-center gap-2 bg-white/5 rounded-xl p-2.5 border border-white/5">
-                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0 shadow-[0_0_5px_rgba(59,130,246,0.5)]"></div>
-                            <input 
-                              value={bullet}
-                              onChange={(e) => handleEditBullet(idx, bIdx, e.target.value)}
-                              className="w-full bg-transparent text-slate-400 text-xs focus:outline-none focus:text-white transition-colors"
-                            />
-                        </div>
-                    ))}
-                    <button 
-                      onClick={() => handleAddBullet(idx)}
-                      className="flex items-center justify-center gap-2 border border-dashed border-white/5 rounded-xl p-2 text-slate-600 hover:border-blue-500/20 hover:text-blue-400 transition-all text-xs"
-                    >
-                      <Plus className="w-3 h-3" /> Přidat bod
-                    </button>
+       <div className="mb-12 bg-slate-900/40 backdrop-blur-3xl rounded-[2rem] p-8 border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex items-center gap-6">
+             <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center border border-blue-500/20">
+                <Sparkles className="w-6 h-6 text-blue-400" />
+             </div>
+             <div>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Hlavní Téma</p>
+                <p className="text-xl font-black text-white">{topic}</p>
+             </div>
+          </div>
+          
+          <div className="h-12 w-px bg-white/5 hidden md:block"></div>
+          
+          <div className="flex items-center gap-12">
+             <div className="text-center">
+                <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Počet Segmentů</p>
+                <p className="text-2xl font-black text-blue-400">{outline.length}</p>
+             </div>
+             
+             <button
+               onClick={onGenerate}
+               disabled={isRegenerating || outline.length === 0}
+               className="bg-blue-600 hover:bg-blue-500 text-white px-10 py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(37,99,235,0.3)] flex items-center gap-4 group"
+             >
+                Finalizovat Misi
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+             </button>
+          </div>
+       </div>
+
+       <Reorder.Group axis="y" values={outline} onReorder={onUpdate} className="space-y-6">
+          {outline.map((slide, index) => (
+            <Reorder.Item 
+                key={index} 
+                value={slide}
+                className="group glass-card border-none bg-slate-900/40 backdrop-blur-3xl rounded-[2.5rem] p-10 flex gap-8 items-start relative hover:bg-white/[0.03] transition-all"
+            >
+                <div className="flex flex-col items-center gap-4 pt-2">
+                    <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center font-black text-xs text-slate-500 border border-white/5 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xl">
+                        {index + 1}
+                    </div>
+                    <div className="cursor-grab active:cursor-grabbing text-slate-700 hover:text-slate-400 p-2">
+                        <GripVertical className="w-5 h-5" />
+                    </div>
                 </div>
-            </div>
 
-            <button 
-              onClick={() => handleRemoveSlide(idx)}
-              className="opacity-0 group-hover:opacity-100 p-2 text-slate-600 hover:text-red-500 transition-all self-start mt-1"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </motion.div>
-        ))}
+                <div className="flex-grow space-y-6">
+                    <input 
+                        type="text" 
+                        value={slide.title}
+                        onChange={(e) => updateSlide(index, 'title', e.target.value)}
+                        className="w-full bg-transparent text-2xl font-black text-white focus:outline-none focus:text-blue-400 transition-colors tracking-tight"
+                        placeholder="Název slajdu..."
+                    />
+                    
+                    <textarea 
+                        value={slide.description}
+                        onChange={(e) => updateSlide(index, 'description', e.target.value)}
+                        className="w-full bg-white/[0.03] border border-white/5 rounded-2xl p-6 text-sm text-slate-400 focus:outline-none focus:border-white/10 transition-all resize-none italic"
+                        rows={2}
+                        placeholder="Co je cílem tohoto slajdu?"
+                    />
 
-        <button 
-          onClick={handleAddSlide}
-          className="w-full py-4 border-2 border-dashed border-white/5 rounded-2xl text-slate-600 hover:text-blue-400 hover:border-blue-500/20 hover:bg-blue-500/5 transition-all font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2"
-        >
-          <Plus className="w-4 h-4" /> Přidat slide
-        </button>
-      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {slide.suggestedBullets.map((bullet, bi) => (
+                            <div key={bi} className="flex items-center gap-3 bg-white/[0.02] border border-white/5 rounded-xl px-4 py-3 group/bullet">
+                                <div className="w-1.5 h-1.5 bg-blue-500/40 rounded-full"></div>
+                                <input 
+                                    type="text"
+                                    value={bullet}
+                                    onChange={(e) => {
+                                        const newBullets = [...slide.suggestedBullets];
+                                        newBullets[bi] = e.target.value;
+                                        updateSlide(index, 'suggestedBullets', newBullets);
+                                    }}
+                                    className="bg-transparent text-xs font-bold text-slate-300 w-full focus:outline-none"
+                                />
+                                <button 
+                                    onClick={() => {
+                                        const newBullets = [...slide.suggestedBullets];
+                                        newBullets.splice(bi, 1);
+                                        updateSlide(index, 'suggestedBullets', newBullets);
+                                    }}
+                                    className="opacity-0 group-hover/bullet:opacity-100 text-slate-600 hover:text-red-400 transition-all"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
+                        ))}
+                        <button 
+                            onClick={() => {
+                                updateSlide(index, 'suggestedBullets', [...slide.suggestedBullets, "Nová odrážka"]);
+                            }}
+                            className="flex items-center gap-2 px-4 py-3 border border-dashed border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-slate-400 hover:border-white/10 transition-all"
+                        >
+                            <Plus className="w-3 h-3" />
+                            Přidat Odrážku
+                        </button>
+                    </div>
+                </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-white/5">
-        <button 
-          onClick={onCancel}
-          className="flex-1 py-4 px-6 border border-white/5 rounded-2xl text-slate-500 hover:text-white hover:bg-white/5 transition-all font-bold text-[10px] uppercase tracking-widest"
-        >
-          Zpět
-        </button>
-        <button 
-          onClick={onGenerate}
-          className="flex-[2] py-4 px-6 bg-white text-slate-950 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-50 hover:scale-[1.01] active:scale-95 transition-all shadow-xl shadow-white/5"
-        >
-          Potvrdit a generovat <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
+                <button 
+                    onClick={() => removeSlide(index)}
+                    className="p-3 text-slate-700 hover:text-red-500 bg-white/[0.02] hover:bg-red-500/10 rounded-xl transition-all"
+                >
+                    <Trash2 className="w-5 h-5" />
+                </button>
+            </Reorder.Item>
+          ))}
+       </Reorder.Group>
+
+       <button 
+          onClick={addSlide}
+          className="w-full mt-12 py-10 border-4 border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 text-slate-600 hover:text-blue-500 hover:border-blue-500/20 hover:bg-blue-500/5 transition-all group"
+       >
+          <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+             <Plus className="w-6 h-6" />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-[0.4em]">Injektovat Nový Segment</span>
+       </button>
     </div>
   );
 };
