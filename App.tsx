@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component, ReactNode } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { InputSection } from './components/InputSection';
 import { OutlineViewer } from './components/OutlineViewer';
@@ -30,6 +30,45 @@ import { uploadToCloudinary } from './services/cloudinaryService';
 
 const MAX_FREE_PRESENTATIONS = 15;
 const MAX_DAILY_IMAGES = 50;
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-black text-red-500 p-10 font-mono flex flex-col items-center justify-center text-center">
+          <h1 className="text-4xl font-bold mb-4">Aplikace spadla :(</h1>
+          <p className="mb-8 text-white">Omlouváme se, došlo k neočekávané chybě.</p>
+          <div className="bg-slate-800 p-6 rounded-xl border border-red-500/30 max-w-2xl text-left overflow-auto">
+            <p className="font-bold mb-2">Technické detaily:</p>
+            <p className="text-sm border-b border-white/10 pb-2 mb-2">{this.state.error?.message}</p>
+            <pre className="text-[10px] leading-tight text-slate-500 opacity-50 h-40 overflow-auto">{this.state.error?.stack}</pre>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-10 px-8 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-500 transition-colors"
+          >
+            Restartovat aplikaci
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({
@@ -514,7 +553,8 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-blue-500/30">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-slate-900 text-white font-sans selection:bg-blue-500/30">
       <Navbar 
         currentStep={state.step} 
         onNavigate={navigateTo} 
@@ -604,6 +644,7 @@ const App: React.FC = () => {
         />
       )}
     </div>
+    </ErrorBoundary>
   );
 };
 
