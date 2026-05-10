@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#020617] text-[#f1f5f9] antialiased;
+  }
+}
+
+@layer components {
+  .perspective-2000 {
+    perspective: 2000px;
+  }
+}

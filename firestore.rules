@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Primitives ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      // Mandate email verification for external providers, allow anonymous if app supports it
+      return isSignedIn() && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider == 'anonymous');
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // --- Validation Helpers ---
+    function isValidPresentation(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.presentationTitle is string &&
+             data.presentationTitle.size() <= 500 &&
+             data.topic is string &&
+             data.topic.size() <= 10000 &&
+             data.status in ['draft', 'generating', 'complete'] &&
+             data.slides is list &&
+             data.slides.size() <= 100 &&
+             (data.slides.size() == 0 || data.slides[0] is map) &&
+             data.sources is list &&
+             data.sources.size() <= 50 &&
+             (!data.keys().contains('isPublic') || data.isPublic is bool);
+    }
+
+    function isValidUserStats(data) {
+      return data.dailyImageCount is number &&
+             data.dailyImageCount >= 0 &&
+             data.dailyImageCount <= 1000 &&
+             data.lastImageGenerationDate is string &&
+             data.lastImageGenerationDate.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    // --- Collections ---
+    match /presentations/{presentationId} {
+      // Allow individual page view if public or owner
+      allow get: if existing().get('isPublic', false) == true || (isSignedIn() && existing().userId == request.auth.uid);
+      
+      // Allow listing public presentations (for anyone) or own presentations (for signed in)
+      allow list: if resource.data.get('isPublic', false) == true || (isSignedIn() && resource.data.userId == request.auth.uid);
+      
+      allow create: if isEmailVerified() &&
+                      isValidId(presentationId) &&
+                      isValidPresentation(incoming()) &&
+                      incoming().createdAt == request.time &&
+                      incoming().updatedAt == request.time &&
+                      incoming().keys().hasAll(['userId', 'presentationTitle', 'topic', 'slides', 'sources', 'status', 'createdAt', 'updatedAt']) &&
+                      incoming().keys().size() >= 8 && incoming().keys().size() <= 10;
+      
+      allow update: if isValidPresentation(incoming()) && 
+                      isOwner(existing().userId) &&
+                      isEmailVerified() &&
+                      incoming().userId == existing().userId &&
+                      incoming().createdAt == existing().createdAt &&
+                      incoming().updatedAt == request.time && (
+                        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'topic', 'presentationTitle', 'slides', 'sources', 'updatedAt', 'isPublic'])
+                      );
+                      
+      allow delete: if isOwner(existing().userId);
+    }
+
+    match /users/{userId}/stats/daily {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidUserStats(incoming());
+    }
+  }
+}

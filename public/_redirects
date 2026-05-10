@@ -1,0 +1,6 @@
+/*
+  # Netlify Redirects
+  # This file ensures that all requests are handled by index.html,
+  # which is essential for Single Page Applications (SPA).
+*/
+/*  /index.html  200

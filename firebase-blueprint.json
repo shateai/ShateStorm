@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "Slide": {
+      "title": "Slide",
+      "description": "Individual presentation slide",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "bulletPoints": { "type": "array" },
+        "speakerNotes": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "audioUrl": { "type": "string" },
+        "animation": { "type": "string" },
+        "layout": { "type": "string" }
+      }
+    },
+    "Source": {
+      "title": "Source",
+      "description": "Source of information",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "uri": { "type": "string" }
+      }
+    },
+    "Presentation": {
+      "title": "Presentation",
+      "description": "User generated presentations",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "topic": { "type": "string" },
+        "presentationTitle": { "type": "string" },
+        "slides": { "type": "array", "items": { "$ref": "#/entities/Slide" } },
+        "sources": { "type": "array", "items": { "$ref": "#/entities/Source" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["draft", "generating", "complete"] },
+        "isPublic": { "type": "boolean" }
+      },
+      "required": ["userId", "presentationTitle", "createdAt"]
+    },
+    "UserStats": {
+      "title": "User Stats",
+      "description": "Tracking user consumption/quotas",
+      "type": "object",
+      "properties": {
+        "dailyImageCount": { "type": "number" },
+        "lastImageGenerationDate": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/presentations/{presentationId}": {
+      "schema": "Presentation",
+      "description": "Primary storage for presentations"
+    },
+    "/users/{userId}/stats/daily": {
+      "schema": "UserStats",
+      "description": "Daily usage statistics"
+    }
+  }
+}
